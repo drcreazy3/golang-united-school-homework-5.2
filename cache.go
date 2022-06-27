@@ -24,7 +24,7 @@ func NewCache() Cache {
 }
 
 func (c Cache) Get(key string) (string, bool) {
-	defer c.checkDeadline()
+	c.checkDeadline()
 	v := ""
 	ok := false
 	if cacheElement, ok := c.elementMap[key]; ok {
@@ -37,12 +37,12 @@ func (c Cache) Get(key string) (string, bool) {
 }
 
 func (c Cache) Put(key, value string) {
-	defer c.checkDeadline()
+	c.checkDeadline()
 	c.elementMap[key] = CacheElement{value: value}
 }
 
 func (c Cache) Keys() []string {
-	defer c.checkDeadline()
+	c.checkDeadline()
 	var keys []string
 	for k := range c.elementMap {
 		keys = append(keys, k)
@@ -52,24 +52,25 @@ func (c Cache) Keys() []string {
 }
 
 func (c Cache) PutTill(key, value string, deadline time.Time) {
-	defer c.checkDeadline()
+	c.checkDeadline()
+	if deadline.Before(c.clearExpiredElementsAt) {
+		c.clearExpiredElementsAt = deadline
+	}
 	c.elementMap[key] = CacheElement{value: value, deadline: deadline}
+
 }
 
 func (c Cache) checkDeadline() {
 	if time.Now().After(c.clearExpiredElementsAt) {
 		c.clearExpiredElementsAt = time.Now().Add(time.Second * time.Duration(CLEAR_INTERVAL))
 		for k, cacheElement := range c.elementMap {
-			if !cacheElement.deadline.IsZero() || time.Now().After(cacheElement.deadline) {
+			if time.Now().After(cacheElement.deadline) {
 				delete(c.elementMap, k)
+				continue
+			}
+			if cacheElement.deadline.Before(c.clearExpiredElementsAt) {
+				c.clearExpiredElementsAt = cacheElement.deadline
 			}
 		}
 	}
 }
-
-// func main() {
-// 	c := NewCache()
-// 	c.Put("key1", "1")
-
-// 	fmt.Println(len(c.Keys()))
-// }
