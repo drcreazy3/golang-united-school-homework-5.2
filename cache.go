@@ -37,7 +37,6 @@ func (c Cache) Get(key string) (string, bool) {
 }
 
 func (c Cache) Put(key, value string) {
-	c.checkDeadline()
 	c.elementMap[key] = CacheElement{value: value}
 }
 
@@ -52,11 +51,11 @@ func (c Cache) Keys() []string {
 }
 
 func (c Cache) PutTill(key, value string, deadline time.Time) {
+	defer c.checkDeadline()
 	if deadline.Before(c.clearExpiredElementsAt) {
 		c.clearExpiredElementsAt = deadline
 	}
 	c.elementMap[key] = CacheElement{value: value, deadline: deadline}
-	c.checkDeadline()
 }
 
 func (c Cache) checkDeadline() {
