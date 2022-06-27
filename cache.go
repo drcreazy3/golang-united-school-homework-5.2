@@ -18,7 +18,7 @@ type CacheElement struct {
 
 func NewCache() Cache {
 	c := Cache{}
-	c.elementMap = make(map[string]CacheElement)
+	c.elementMap = map[string]CacheElement{}
 	c.clearExpiredElementsAt = time.Now().Add(time.Second * time.Duration(CLEAR_INTERVAL))
 	return c
 }
@@ -43,7 +43,7 @@ func (c Cache) Put(key, value string) {
 
 func (c Cache) Keys() []string {
 	defer c.checkDeadline()
-	keys := make([]string, len(c.elementMap)-1)
+	var keys []string
 	for k := range c.elementMap {
 		keys = append(keys, k)
 	}
@@ -71,5 +71,5 @@ func (c Cache) checkDeadline() {
 // 	c := NewCache()
 // 	c.Put("key1", "1")
 
-// 	fmt.Println(c.Keys())
+// 	fmt.Println(len(c.Keys()))
 // }
