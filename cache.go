@@ -43,7 +43,7 @@ func (c Cache) Put(key, value string) {
 
 func (c Cache) Keys() []string {
 	defer c.checkDeadline()
-	keys := make([]string, len(c.elementMap))
+	keys := make([]string, len(c.elementMap)-1)
 	for k := range c.elementMap {
 		keys = append(keys, k)
 	}
@@ -66,3 +66,10 @@ func (c Cache) checkDeadline() {
 		}
 	}
 }
+
+// func main() {
+// 	c := NewCache()
+// 	c.Put("key1", "1")
+
+// 	fmt.Println(c.Keys())
+// }
