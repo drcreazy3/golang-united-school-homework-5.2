@@ -52,22 +52,26 @@ func (c Cache) Keys() []string {
 }
 
 func (c Cache) PutTill(key, value string, deadline time.Time) {
-	c.checkDeadline()
 	if deadline.Before(c.clearExpiredElementsAt) {
 		c.clearExpiredElementsAt = deadline
 	}
 	c.elementMap[key] = CacheElement{value: value, deadline: deadline}
-
+	c.checkDeadline()
 }
 
 func (c Cache) checkDeadline() {
 	if time.Now().After(c.clearExpiredElementsAt) {
 		c.clearExpiredElementsAt = time.Now().Add(time.Second * time.Duration(CLEAR_INTERVAL))
 		for k, cacheElement := range c.elementMap {
+			if cacheElement.deadline.IsZero() {
+				continue
+			}
+
 			if time.Now().After(cacheElement.deadline) {
 				delete(c.elementMap, k)
 				continue
 			}
+
 			if cacheElement.deadline.Before(c.clearExpiredElementsAt) {
 				c.clearExpiredElementsAt = cacheElement.deadline
 			}
